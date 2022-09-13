@@ -1,0 +1,20 @@
+- hosts: localhost
+  connection: local
+  collections:
+    - azure.azcollection
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    - name: Create a Resource Group
+      azure_rm_resourcegroup:
+        name: ansiblerg
+        location: eastus
+        
+    - name: Create a Storage Account
+      azure_rm_storageaccount:
+        resource_group: ansiblerg
+        location: eastus
+        name: successb876
+        kind: StorageV2
+        access_tier: Hot
+        account_type: Standard_LRS
