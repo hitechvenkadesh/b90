@@ -1,0 +1,58 @@
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+  - name: Create a resource group
+    azure_rm_resourcegroup:
+      name: htrg1
+      location: eastus
+  - name: Create secondary resource group
+    azure_rm_resourcegroup:
+      name: htrg2
+      location: westus
+  
+  - name: Create first virtual network
+    azure_rm_virtualnetwork:
+      resource_group: htrg1
+      name: htvneta
+      address_prefixes: "10.0.0.0/16"
+  - name: Add subnet
+    azure_rm_subnet:
+      resource_group: htrg1
+      name: htsubnet1a
+      address_prefix: "10.0.0.0/24"
+      virtual_network: htvneta
+      
+  - name: Create second virtual network
+    azure_rm_virtualnetwork:
+      resource_group: htrg2
+      name: htvnetb
+      address_prefixes: "10.1.0.0/16"
+  - name: Add subnet
+    azure_rm_subnet:
+      resource_group: htrg2
+      name: htsubnet1b
+      address_prefix: "10.1.0.0/24"
+      virtual_network: htvnetb
+  
+  - name: Initial vnet peering
+    azure_rm_virtualnetworkpeering:
+      resource_group: htrg1
+      name: vnetatovnetb
+      virtual_network: htvneta
+      remote_virtual_network:
+        resource_group: htrg2
+        name: htvnetb
+      allow_virtual_network_access: true
+      allow_forwarded_traffic: true
+
+  - name: Connect vnet peering
+    azure_rm_virtualnetworkpeering:
+      resource_group: htrg2
+      name: htvnetbtohtvneta
+      virtual_network: htvnetb
+      remote_virtual_network:
+        resource_group: htrg1
+        name: htvneta
+      allow_virtual_network_access: true
+      allow_forwarded_traffic: true

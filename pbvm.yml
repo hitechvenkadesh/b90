@@ -1,0 +1,82 @@
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+  - rgname: "httest1234"
+  - rglocation: "eastus"
+  - straccname: "hitechb74storage"
+  - vnetname: "hitechb74vnet"
+  - vnetcidr: "10.10.0.0/16"
+  - subnetname: "hitechb74subnet"
+  - subnetcidr: "10.10.1.0/24"
+  tasks:
+  - name: Create a resource group
+    azure.azcollection.azure_rm_resourcegroup:
+      name: "{{ rgname }}"
+      location: "{{ rglocation }}"
+      
+  - name: Create storage account
+    azure.azcollection.azure_rm_storageaccount:
+      resource_group: "{{ rgname }}" 
+      name: "{{ straccname }}"
+      account_type: Standard_LRS
+    
+  - name: Create virtual network
+    azure.azcollection.azure_rm_virtualnetwork:
+      resource_group: "{{ rgname }}"
+      name: "{{ vnetname }}"
+      address_prefixes: "{{ vnetcidr }}"
+    
+  - name: Add subnet
+    azure.azcollection.azure_rm_subnet:
+      resource_group: "{{ rgname }}" 
+      name: "{{ subnetname }}" 
+      address_prefix: "{{ subnetcidr }}" 
+      virtual_network: "{{ vnetname }}" 
+    
+  - name: Create public ip
+    azure.azcollection.azure_rm_publicipaddress:
+      resource_group: "{{ rgname }}" 
+      allocation_method: Static
+      name: publicip001
+  
+  - name: Create security group that allows SSH
+    azure.azcollection.azure_rm_securitygroup:
+      resource_group: "{{ rgname }}" 
+      name: secgroup001
+      rules:
+        - name: SSH
+          protocol: Tcp
+          destination_port_range: 22
+          access: Allow
+          priority: 101
+          direction: Inbound
+          
+  - name: Create NIC
+    azure.azcollection.azure_rm_networkinterface:
+      resource_group: "{{ rgname }}" 
+      name: testnic001
+      virtual_network: "{{ vnetname }}" 
+      subnet: "{{ subnetname }}" 
+      public_ip_name: publicip001
+      security_group: secgroup001
+  
+  - name: Create virtual machine
+    azure.azcollection.azure_rm_virtualmachine:
+      resource_group: "{{ rgname }}" 
+      name: testvm001
+      vm_size: Standard_B1s
+      storage_account: "{{ straccname }}" 
+      storage_container: testvm001
+      storage_blob: testvm001.vhd
+      admin_username: hitech
+      admin_password: Pa$$W0rd@123#
+      network_interfaces: testnic001
+      image:
+        offer: CentOS
+        publisher: OpenLogic
+        sku: '7.5'
+        version: latest
+        
+#OpenLogic:CentOS:7.5:latest
+#MicrosoftWindowsServer:WindowsServer:2012-R2-Datacenter:latest
