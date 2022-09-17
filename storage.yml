@@ -20,3 +20,5 @@
         kind: StorageV2
         access_tier: Hot
         account_type: Standard_LRS
+
+#ansible-playbook storage.yml --extra-vars "RGName=${RGName} location=${location} strname=${strname}"
