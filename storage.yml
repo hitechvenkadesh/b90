@@ -2,17 +2,21 @@
   connection: local
   collections:
     - azure.azcollection
+  vars_prompt:
+    - name: RGName
+    - name: location
+    - name: strname
   tasks:
     - name: Create a Resource Group
       azure_rm_resourcegroup:
-        name: ansiblerg
-        location: eastus
+        name: "{{ RGName }}"
+        location: "{{ location }}"
         
     - name: Create a Storage Account
       azure_rm_storageaccount:
-        resource_group: ansiblerg
-        location: eastus
-        name: successb876
+        resource_group: "{{ RGName }}"
+        location: "{{ location }}"
+        name: "{{ strname }}"
         kind: StorageV2
         access_tier: Hot
         account_type: Standard_LRS
